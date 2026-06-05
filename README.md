@@ -67,6 +67,6 @@ For truly large contexts, use a provider/server that advertises the required con
 
 - Google Antigravity docs describe `agy` as the terminal-first CLI and document `--print` for non-interactive runs.
 - Google Antigravity lists Gemini 3.5 Flash among available reasoning models, and its blog says Gemini 3.5 Flash is the default Gemini Flash model in Antigravity.
-- Meta says Llama 4 Scout has a 10M context window. NVIDIA describes Llama 4 Maverick as accepting 1M context length, while Scout has 10M.
-
-So the correction is: 10M is the Scout story; Maverick is still large-context, but do not assume Maverick is the 10M option unless your provider explicitly says so.
+- Llama 4 Scout is the right default target when Reach needs maximum advertised context, including 10M-token-class repository packs.
+- Llama 4 Maverick is a strong large-context target for providers that expose 1M-token-class windows and lower-latency analysis.
+- Reach routes by provider configuration rather than hardcoded assumptions. Set `REACH_LLM_MODEL` to the exact hosted model name and choose a context budget that fits that provider's documented limit.
