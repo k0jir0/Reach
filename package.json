@@ -1,0 +1,23 @@
+{
+  "name": "reach",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Long-context repository intelligence for whole-codebase questions.",
+  "bin": {
+    "reach": "./src/cli.mjs"
+  },
+  "scripts": {
+    "scan": "node ./src/cli.mjs scan",
+    "prompt": "node ./src/cli.mjs prompt",
+    "ask:local": "node ./src/cli.mjs ask-local",
+    "ask:agy": "node ./src/cli.mjs ask-agy",
+    "ask:llama": "node ./src/cli.mjs ask-llama",
+    "serve": "node ./src/cli.mjs serve",
+    "test": "node test/reach.test.mjs",
+    "smoke": "node ./src/cli.mjs scan --repo . --out .reach/reach-self.json --budget 120000 && node ./src/cli.mjs ask-local --snapshot .reach/reach-self.json --question \"What is Reach?\""
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

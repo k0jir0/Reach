@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reach</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f7f7f2;
+        color: #16181d;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 32px 20px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 20px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #d9d9cf;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 36px;
+        line-height: 1.1;
+      }
+
+      .muted {
+        color: #62675f;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 24px;
+        padding-top: 24px;
+      }
+
+      .panel {
+        border: 1px solid #d9d9cf;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .panel h2 {
+        font-size: 14px;
+        padding: 16px;
+        border-bottom: 1px solid #e5e5dd;
+        text-transform: uppercase;
+      }
+
+      button {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #ededE6;
+        background: transparent;
+        padding: 12px 16px;
+        text-align: left;
+        cursor: pointer;
+        color: inherit;
+        font: inherit;
+      }
+
+      button:hover,
+      button.active {
+        background: #f1f4ea;
+      }
+
+      .side-section + .side-section {
+        border-top: 1px solid #e5e5dd;
+      }
+
+      .details {
+        padding: 20px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin: 18px 0;
+      }
+
+      .stat {
+        border: 1px solid #e3e3da;
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 24px;
+      }
+
+      pre {
+        max-height: 480px;
+        overflow: auto;
+        border-radius: 8px;
+        background: #16181d;
+        color: #f5f7ef;
+        padding: 16px;
+        white-space: pre-wrap;
+      }
+
+      .status {
+        display: inline-flex;
+        border-radius: 999px;
+        padding: 3px 10px;
+        background: #ecf5df;
+        color: #33530f;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .status.failed {
+        background: #ffe8e3;
+        color: #8a2b1a;
+      }
+
+      @media (max-width: 760px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="muted">Long-context repository intelligence</p>
+          <h1>Reach</h1>
+        </div>
+        <p class="muted">Snapshots in <code>.reach</code></p>
+      </header>
+
+      <section class="layout">
+        <aside class="panel">
+          <div class="side-section">
+            <h2>Snapshots</h2>
+            <div id="snapshots"></div>
+          </div>
+          <div class="side-section">
+            <h2>Runs</h2>
+            <div id="runs"></div>
+          </div>
+        </aside>
+        <section class="panel">
+          <h2>Snapshot Detail</h2>
+          <div id="detail" class="details muted">Create a snapshot, then refresh this page.</div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const snapshotsEl = document.querySelector('#snapshots');
+      const runsEl = document.querySelector('#runs');
+      const detailEl = document.querySelector('#detail');
+
+      async function loadSnapshots() {
+        const snapshots = await fetch('/api/snapshots').then((res) => res.json());
+        snapshotsEl.innerHTML = '';
+
+        if (!snapshots.length) {
+          snapshotsEl.innerHTML = '<p class="muted" style="padding:16px">No snapshots yet.</p>';
+          return;
+        }
+
+        snapshots.forEach((name, index) => {
+          const button = document.createElement('button');
+          button.textContent = name;
+          button.addEventListener('click', () => loadSnapshot(name, button));
+          snapshotsEl.appendChild(button);
+          if (index === 0) {
+            button.click();
+          }
+        });
+      }
+
+      async function loadRuns() {
+        const runs = await fetch('/api/runs').then((res) => res.json());
+        runsEl.innerHTML = '';
+
+        if (!runs.length) {
+          runsEl.innerHTML = '<p class="muted" style="padding:16px">No runs yet.</p>';
+          return;
+        }
+
+        runs.forEach((name) => {
+          const button = document.createElement('button');
+          button.textContent = name;
+          button.addEventListener('click', () => loadRun(name, button));
+          runsEl.appendChild(button);
+        });
+      }
+
+      async function loadSnapshot(name, button) {
+        document.querySelectorAll('button').forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+        const snapshot = await fetch(`/api/snapshots/${encodeURIComponent(name)}`).then((res) => res.json());
+        detailEl.classList.remove('muted');
+        detailEl.innerHTML = `
+          <h2 style="border:0;padding:0;margin-bottom:8px;text-transform:none;font-size:24px">${escapeHtml(name)}</h2>
+          <p class="muted">${escapeHtml(snapshot.root)}</p>
+          <div class="stats">
+            <div class="stat"><strong>${escapeHtml(String(snapshot.counts.discovered))}</strong><span class="muted">files</span></div>
+            <div class="stat"><strong>${escapeHtml(String(snapshot.counts.selected))}</strong><span class="muted">selected</span></div>
+            <div class="stat"><strong>${escapeHtml(String(snapshot.usedTokens))}</strong><span class="muted">tokens</span></div>
+            <div class="stat"><strong>${escapeHtml(String(snapshot.budget))}</strong><span class="muted">budget</span></div>
+          </div>
+          <pre>${escapeHtml(snapshot.selectedFiles.map((file) => file.path).join('\\n'))}</pre>
+        `;
+      }
+
+      async function loadRun(name, button) {
+        document.querySelectorAll('button').forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+        const run = await fetch(`/api/runs/${encodeURIComponent(name)}`).then((res) => res.json());
+        const statusClass = run.status === 'failed' ? 'status failed' : 'status';
+        detailEl.classList.remove('muted');
+        detailEl.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:16px;margin-bottom:8px">
+            <h2 style="border:0;padding:0;text-transform:none;font-size:24px">${escapeHtml(run.id)}</h2>
+            <span class="${statusClass}">${escapeHtml(run.status)}</span>
+          </div>
+          <p class="muted">${escapeHtml(run.provider)}${run.model ? ` / ${escapeHtml(run.model)}` : ''}</p>
+          <div class="stats">
+            <div class="stat"><strong>${escapeHtml(String(run.metadata.selectedFiles ?? '-'))}</strong><span class="muted">selected</span></div>
+            <div class="stat"><strong>${escapeHtml(String(run.metadata.discoveredFiles ?? '-'))}</strong><span class="muted">files</span></div>
+            <div class="stat"><strong>${escapeHtml(String(run.metadata.snapshotTokens ?? '-'))}</strong><span class="muted">tokens</span></div>
+            <div class="stat"><strong>${escapeHtml(String(run.metadata.snapshotBudget ?? '-'))}</strong><span class="muted">budget</span></div>
+          </div>
+          <h3>Question</h3>
+          <pre>${escapeHtml(run.question)}</pre>
+          <h3>${run.error ? 'Error' : 'Answer'}</h3>
+          <pre>${escapeHtml(run.error || run.answer)}</pre>
+        `;
+      }
+
+      function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;',
+        })[char]);
+      }
+
+      Promise.all([loadSnapshots(), loadRuns()]).catch((error) => {
+        detailEl.textContent = error.message;
+      });
+    </script>
+  </body>
+</html>

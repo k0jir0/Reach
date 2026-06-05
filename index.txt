@@ -1,0 +1,7 @@
+Reach is now a runnable long-context repository intelligence prototype.
+
+Start here:
+  node .\src\cli.mjs --help
+  node .\src\cli.mjs scan --repo . --out .reach\reach-self.json --budget 120000
+  node .\src\cli.mjs ask-local --snapshot .reach\reach-self.json --question "What is Reach?"
+  node .\src\cli.mjs serve
